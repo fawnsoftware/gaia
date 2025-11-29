@@ -6,9 +6,9 @@ namespace Arrowtide\Gaia\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 use Statamic\Facades\Collection;
 use Statamic\Facades\YAML;
-use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'gaia:install')]
