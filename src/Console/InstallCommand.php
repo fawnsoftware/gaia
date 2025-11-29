@@ -133,6 +133,6 @@ class InstallCommand extends Command
      */
     protected function stubLocation($path): string
     {
-        return Str::replaceLast('/src/Console', '', __DIR__) . '/stubs/' . $path;
+        return Str::replaceLast('/src/Console', '', __DIR__).'/stubs/'.$path;
     }
 }
