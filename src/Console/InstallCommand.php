@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Statamic\Facades\Collection;
 use Statamic\Facades\YAML;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'gaia:install')]
@@ -70,7 +71,7 @@ class InstallCommand extends Command
                 continue;
             }
 
-            $this->info("Symlinking {$path}");
+            $this->info("Symlinking {$from} to {$to}...");
 
             (new Filesystem)->ensureDirectoryExists(base_path(dirname($path)));
             (new Filesystem)->link($from, $to);
@@ -132,6 +133,6 @@ class InstallCommand extends Command
      */
     protected function stubLocation($path): string
     {
-        return rtrim(__DIR__, 'src/Console').'/stubs/'.$path;
+        return Str::replaceLast('/src/Console', '', __DIR__) . '/stubs/' . $path;
     }
 }
