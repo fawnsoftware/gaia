@@ -19,10 +19,7 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'gaia:install
-        {--file= : Use a custom configuration file }
-        {--with-symlinks : Create symbolic links during installation }
-        {--force-symlinks : Force the creation of symbolic links by deleting existing folders or files }
+    protected $signature = 'gaia:install {--file= : Use a custom configuration file }
         ';
 
     /**
@@ -39,45 +36,11 @@ class InstallCommand extends Command
     {
         $this->info('Installing Gaia components and resources...');
 
-        // If --with-symlinks is set, create symlinks instead of copying the files over.
-        if ($this->option('with-symlinks')) {
-            $this->createSymlinksFromConfig();
-        } else {
-            $this->copyResourcesFromConfig();
-        }
+        $this->copyResourcesFromConfig();
 
         $this->setProductCollectionTemplate();
 
         return true;
-    }
-
-    /**
-     * Create symlinks from the config file
-     */
-    protected function createSymlinksFromConfig(): void
-    {
-        foreach ($this->exportPathsConfig() as $path) {
-            $from = $this->stubLocation($path);
-            $to = base_path($path);
-
-            if ($this->option('force-symlinks')) {
-                (new Filesystem)->delete($to);
-                (new Filesystem)->deleteDirectory($to);
-            }
-
-            if ((new Filesystem)->exists($to)) {
-                $this->warn("{$from} already exists, skipping.");
-
-                continue;
-            }
-
-            $this->info("Symlinking {$from} to {$to}...");
-
-            (new Filesystem)->ensureDirectoryExists(base_path(dirname($path)));
-            (new Filesystem)->link($from, $to);
-        }
-
-        $this->info('Gaia scaffolding installed successfully.');
     }
 
     /**

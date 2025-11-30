@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Arrowtide\Gaia;
 
+use Arrowtide\Gaia\Console\ExportCommand;
 use Arrowtide\Gaia\Console\InstallCommand;
 use Arrowtide\Gaia\Http\Livewire\Catalog;
 use Arrowtide\Gaia\Http\Livewire\CustomerOrders;
@@ -107,6 +108,7 @@ class ServiceProvider extends AddonServiceProvider
 
         $this->commands([
             InstallCommand::class,
+            ExportCommand::class,
         ]);
     }
 }
