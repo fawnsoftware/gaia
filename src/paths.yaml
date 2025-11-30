@@ -2,7 +2,6 @@ export_paths:
   - resources/css
   - resources/svg
   - resources/js
-  - resources/fonts
   - resources/lang
 
   # Views
@@ -17,18 +16,18 @@ export_paths:
   - resources/blueprints/navigation
 
 
-  # Content 
+  # Content
   - content/collections/pages/page-not-found.md
   - content/collections/pages/home.md
   - content/collections/shop.yaml
   - content/collections/pages.yaml
 
-  ## Content - Globals 
+  ## Content - Globals
   - content/globals/general.yaml
 
   ## Content - Navigation
   - content/navigation/primary_navigation.yaml
-  - content/navigation/footer_legal.yaml 
+  - content/navigation/footer_legal.yaml
   - content/navigation/footer_main.yaml
 
   ## Content - Trees
@@ -38,6 +37,6 @@ export_paths:
   - content/trees/navigation/footer_main.yaml
 
 
-  # Root files 
+  # Root files
   - vite.config.js
   - package.json

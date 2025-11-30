@@ -6,21 +6,19 @@ namespace Arrowtide\Gaia\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Str;
-use Statamic\Facades\Collection;
 use Statamic\Facades\YAML;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'gaia:export')]
 class ExportCommand extends Command
 {
-    protected $signature = 'gaia:export {directory?}';
+    protected $signature = 'gaia:export {export_path}';
 
     protected $description = 'Exports stubs from the working site to the package stubs directory';
 
     public function handle(): bool
     {
-        $this->info('Installing Gaia components and resources...');
+        $this->info('Exporting...');
 
         $this->export();
 
@@ -31,11 +29,11 @@ class ExportCommand extends Command
     {
         $fs = new Filesystem;
 
-        $directory = $this->argument('directory');
+        $directory = $this->argument('export_path');
         $exportRoot = realpath(base_path($directory)) ?: base_path($directory);
         $exportRoot = rtrim($exportRoot, '/').'/stubs';
 
-        $this->info("Exporting TO: {$exportRoot}");
+        $this->info("Exporting to: {$exportRoot}");
 
         foreach ($this->exportPathsConfig() as $path) {
 
@@ -48,15 +46,13 @@ class ExportCommand extends Command
 
             if (!$fs->exists($from)) {
                 $this->warn("Source {$from} does not exist, skipping.");
-                continue;
             }
 
-            if ($fs->exists($to) && !$this->option('force')) {
+            if ($fs->exists($to)) {
                 $this->warn("{$to} already exists, skipping.");
-                continue;
             }
 
-            $this->info("Copying {$from} → {$to}");
+            $this->info("Copying {$path}");
 
             $fs->ensureDirectoryExists(dirname($to));
 
@@ -80,5 +76,4 @@ class ExportCommand extends Command
             YAML::parse((new Filesystem)->get(__DIR__.'/../../src/paths.yaml'))
         )->get('export_paths');
     }
-
 }
