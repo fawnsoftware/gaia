@@ -39,12 +39,12 @@ class ExportCommand extends Command
 
             $from = base_path($path);
 
-            $to = $exportRoot . '/' . $path;
+            $to = $exportRoot.'/'.$path;
 
             $fs->delete($to);
             $fs->deleteDirectory($to);
 
-            if (!$fs->exists($from)) {
+            if (! $fs->exists($from)) {
                 $this->warn("Source {$from} does not exist, skipping.");
             }
 
@@ -65,7 +65,6 @@ class ExportCommand extends Command
 
         $this->info('Gaia stubs exported successfully.');
     }
-
 
     /**
      * Gets the export paths required to install Gaia

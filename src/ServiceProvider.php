@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Arrowtide\Gaia;
 
-use Arrowtide\Gaia\Console\InstallCommand;
 use Arrowtide\Gaia\Console\ExportCommand;
+use Arrowtide\Gaia\Console\InstallCommand;
 use Arrowtide\Gaia\Http\Livewire\Catalog;
 use Arrowtide\Gaia\Http\Livewire\CustomerOrders;
 use Arrowtide\Gaia\Http\Livewire\LiveSearch;
