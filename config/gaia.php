@@ -86,6 +86,23 @@ return [
 
     'default_currency' => 'USD',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cart
+    |--------------------------------------------------------------------------
+    |
+    | Configure the cart storage key and cookie duration.
+    |
+    | storage_key: The base key used for storing the cart ID.
+    | cookie_duration: How long the guest cart cookie persists (in minutes).
+    |
+    */
+
+    'cart' => [
+        'storage_key' => 'cart',
+        'cookie_duration' => 14400, // 10 days in minutes
+    ],
+
     'search' => [
         /*
         |--------------------------------------------------------------------------

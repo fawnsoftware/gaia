@@ -28,7 +28,10 @@
         "laravel": {
             "providers": [
                 "Arrowtide\\Gaia\\ServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "Cart": "Arrowtide\\Gaia\\Facades\\Cart"
+            }
         }
     }
 }

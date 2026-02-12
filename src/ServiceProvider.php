@@ -10,14 +10,14 @@ use Arrowtide\Gaia\Http\Livewire\Catalog;
 use Arrowtide\Gaia\Http\Livewire\CustomerOrders;
 use Arrowtide\Gaia\Http\Livewire\LiveSearch;
 use Arrowtide\Gaia\Http\Livewire\Minicart;
-use Arrowtide\Gaia\Interfaces\CartRepositoryInterface;
 use Arrowtide\Gaia\Interfaces\WishlistRepositoryInterface;
 use Arrowtide\Gaia\Listeners\HandleUserLogin;
 use Arrowtide\Gaia\Listeners\HandleUserLogout;
 use Arrowtide\Gaia\Modifiers\PluckWithKeys;
 use Arrowtide\Gaia\Modifiers\TrimShopifyId;
-use Arrowtide\Gaia\Repositories\CartRepository;
 use Arrowtide\Gaia\Repositories\WishlistRepository;
+use Arrowtide\Gaia\Services\CartIdManager;
+use Arrowtide\Gaia\Services\ShopifyCartService;
 use Arrowtide\Gaia\Scopes\WishlistProducts;
 use Arrowtide\Gaia\Tags\Gaia;
 use Illuminate\Auth\Events\Login;
@@ -93,7 +93,15 @@ class ServiceProvider extends AddonServiceProvider
     public function register(): void
     {
         $this->app->bind(WishlistRepositoryInterface::class, WishlistRepository::class);
-        $this->app->bind(CartRepositoryInterface::class, CartRepository::class);
+
+        $this->app->singleton(CartIdManager::class);
+
+        $this->app->bind(ShopifyCartService::class, function ($app) {
+            return new ShopifyCartService(
+                $app->make(Storefront::class),
+                $app->make(CartIdManager::class),
+            );
+        });
 
         $this->app->bind(Storefront::class, function ($app) {
             return new Storefront(config('shopify.url'), config('shopify.storefront_token'));

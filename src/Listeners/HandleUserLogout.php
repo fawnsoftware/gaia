@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace Arrowtide\Gaia\Listeners;
 
-use Arrowtide\Gaia\Interfaces\CartRepositoryInterface;
+use Arrowtide\Gaia\Services\ShopifyCartService;
 use Illuminate\Auth\Events\Logout;
+use Statamic\Statamic;
 
 class HandleUserLogout
 {
     public function __construct(
-        private readonly CartRepositoryInterface $cartRepository
+        private readonly ShopifyCartService $cart
     ) {}
 
     public function handle(Logout $event): void
     {
-        // TODO :: Handle the cart when a user logs out, so another user cannot see the previous cart.
+        if (! Statamic::isCpRoute()) {
+            $this->cart->forget();
+        }
     }
 }

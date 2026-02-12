@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Arrowtide\Gaia\Http\Controllers;
 
-use Arrowtide\Gaia\Interfaces\CartRepositoryInterface;
+use Arrowtide\Gaia\Services\ShopifyCartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Statamic\Http\Controllers\Controller;
@@ -12,19 +12,17 @@ use Statamic\Http\Controllers\Controller;
 class CartController extends Controller
 {
     public function __construct(
-        private readonly CartRepositoryInterface $cartRepository
+        private readonly ShopifyCartService $cart
     ) {}
 
     public function index(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
         try {
-            $cartData = $this->cartRepository->cart($cartId);
+            $cartData = $this->cart->get();
+
+            if (! $cartData) {
+                return response()->json(['error' => 'You do not have an active cart session'], 404);
+            }
 
             return response()->json([$cartData]);
         } catch (\Exception $e) {
@@ -34,17 +32,16 @@ class CartController extends Controller
 
     public function create(Request $request): JsonResponse
     {
-        // Validate the incoming request
         $request->validate([
             'product_id' => 'required|string',
             'quantity' => 'required|integer',
         ]);
 
-        $productId = $request->input('product_id');
-        $quantity = $request->input('quantity');
-
         try {
-            $this->cartRepository->cartCreate($productId, $quantity);
+            $this->cart->createWithItem(
+                $request->input('product_id'),
+                $request->input('quantity')
+            );
 
             return response()->json(['message' => 'Cart created successfully']);
         } catch (\Exception $e) {
@@ -54,24 +51,20 @@ class CartController extends Controller
 
     public function addToCart(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
         $request->validate([
             'product_id' => 'required|string',
             'quantity' => 'required|integer',
         ]);
 
-        $productId = $request->input('product_id');
-        $quantity = $request->input('quantity');
-
         try {
-            $this->cartRepository->cartLinesAdd($cartId, $productId, $quantity);
+            $this->cart->addLine(
+                $request->input('product_id'),
+                $request->input('quantity')
+            );
 
             return response()->json(['message' => 'Product added to cart successfully']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'You do not have an active cart session'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -79,24 +72,20 @@ class CartController extends Controller
 
     public function updateCartLine(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
         $request->validate([
             'product_id' => 'required|string',
             'quantity' => 'required|integer',
         ]);
 
-        $productId = $request->input('product_id');
-        $quantity = $request->input('quantity');
-
         try {
-            $this->cartRepository->cartLinesUpdate($cartId, $productId, $quantity);
+            $this->cart->updateLine(
+                $request->input('product_id'),
+                $request->input('quantity')
+            );
 
             return response()->json(['message' => 'Product added to cart successfully']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'You do not have an active cart session'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -104,16 +93,12 @@ class CartController extends Controller
 
     public function checkoutURL(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
         try {
-            $response = $this->cartRepository->checkoutURL($cartId);
+            $checkoutUrl = $this->cart->checkoutUrl();
 
-            return response()->json($response['cart']);
+            return response()->json(['checkoutUrl' => $checkoutUrl]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'You do not have an active cart session'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -121,22 +106,16 @@ class CartController extends Controller
 
     public function updateCartDiscountCodes(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
         $request->validate([
             'discount_codes' => 'array|max:255',
         ]);
 
-        $discountCodes = $request->input('discount_codes');
-
         try {
-            $this->cartRepository->updateCartDiscountCodes($cartId, $discountCodes);
+            $this->cart->updateDiscountCodes($request->input('discount_codes'));
 
             return response()->json(['message' => 'Discount codes updated successfully']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'You do not have an active cart session'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -144,29 +123,22 @@ class CartController extends Controller
 
     public function updateCartAttributes(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
         $request->validate([
             'key' => 'required|string|max:255',
             'value' => 'required|string|max:255',
         ]);
 
-        $key = $request->input('key');
-        $value = $request->input('value');
-
         $attributes = [
-            'key' => $key,
-            'value' => $value,
+            'key' => $request->input('key'),
+            'value' => $request->input('value'),
         ];
 
         try {
-            $this->cartRepository->updateCartAttributes($cartId, $attributes);
+            $this->cart->updateAttributes($attributes);
 
             return response()->json(['message' => 'Cart Attributes updated successfully']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'You do not have an active cart session'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -174,22 +146,16 @@ class CartController extends Controller
 
     public function updateCartNote(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
         $request->validate([
             'note' => 'required|string|max:255',
         ]);
 
-        $note = $request->input('note');
-
         try {
-            $this->cartRepository->updateCartNote($cartId, $note);
+            $this->cart->updateNote($request->input('note'));
 
             return response()->json(['message' => 'Note added to cart successfully']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'You do not have an active cart session'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -197,23 +163,16 @@ class CartController extends Controller
 
     public function removeFromCart(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
-        // The input must not contain more than 250 values.
         $request->validate([
             'product_ids' => 'required|array|max:250',
         ]);
 
-        $productIds = $request->input('product_ids');
-
         try {
-            $this->cartRepository->removeCartLines($cartId, $productIds);
+            $this->cart->removeLines($request->input('product_ids'));
 
             return response()->json(['message' => 'Products removed from the to cart successfully']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'You do not have an active cart session'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -221,14 +180,8 @@ class CartController extends Controller
 
     public function deleteCart(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
         try {
-            $this->cartRepository->deleteCart();
+            $this->cart->forget();
 
             return response()->json(['message' => 'Cart has been deleted successfully']);
         } catch (\Exception $e) {
@@ -238,23 +191,16 @@ class CartController extends Controller
 
     public function updateCartBuyerIdentity(Request $request): JsonResponse
     {
-        $cartId = $this->cartRepository->getCartId();
-
-        if (! $cartId) {
-            return response()->json(['error' => 'You do not have an active cart session'], 404);
-        }
-
-        // The input must not contain more than 250 values.
         $request->validate([
-            'email' => 'required|array|max:250',
+            'email' => 'required|string|max:250',
         ]);
 
-        $email = $request->input('email');
-
         try {
-            $this->cartRepository->updateCartBuyerIdentity($cartId, $email);
+            $this->cart->updateBuyerIdentity($request->input('email'));
 
             return response()->json(['message' => 'Cart Identity has been updated successfully']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'You do not have an active cart session'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
